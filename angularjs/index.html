@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR" ng-app="estanteApp">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Estante</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body ng-controller="PrincipalController" ng-cloak>
+    <header class="cabecalho">
+      <div class="cabecalho-interno">
+        <h1 class="marca">Estante</h1>
+        <p class="cabecalho-frase">Organize as suas leituras</p>
+      </div>
+    </header>
+
+    <main class="pagina">
+      <aside class="lateral" aria-labelledby="titulo-leitura">
+        <p class="sobretitulo">Lendo agora</p>
+        <h2 id="titulo-leitura">{{leitura.livro.titulo}}</h2>
+        <p class="texto-suave">{{leitura.livro.autor}}</p>
+
+        <barra-progresso
+          valor="progressoLeitura()"
+          rotulo="{{leitura.paginasLidas || 0}} de {{leitura.livro.paginas | number}} páginas"
+        ></barra-progresso>
+
+        <label for="paginas-lidas">Páginas lidas</label>
+        <div class="leitura-controles">
+          <input
+            id="paginas-lidas"
+            type="number"
+            min="0"
+            max="{{leitura.livro.paginas}}"
+            ng-model="leitura.paginasLidas"
+            ng-model-options="{ allowInvalid: true, debounce: 500 }"
+            ng-change="aoMudarPaginas()"
+          />
+          <button
+            type="button"
+            class="botao"
+            ng-click="avancarPaginas(10)"
+            ng-disabled="leitura.concluido"
+          >+10 páginas</button>
+        </div>
+
+        <p class="status" ng-if="leitura.concluido">Livro concluído! Escolha o próximo no acervo.</p>
+        <p class="status" ng-if="!leitura.concluido">
+          Faltam {{leitura.livro.paginas - (leitura.paginasLidas || 0) | number}} páginas
+          ({{leitura.livro.paginas - (leitura.paginasLidas || 0) | tempoLeitura}}).
+        </p>
+      </aside>
+
+      <div class="principal">
+        <section id="acervo" class="secao" aria-labelledby="titulo-acervo">
+          <div class="secao-topo">
+            <div>
+              <h2 id="titulo-acervo">Acervo</h2>
+              <p class="texto-suave">Livros disponíveis para a sua próxima leitura.</p>
+            </div>
+            <menu-suspenso
+              rotulo="Gênero"
+              opcoes="opcoesGenero"
+              selecionado="generoSelecionado"
+              ao-selecionar="filtrarPorGenero(opcao)"
+            ></menu-suspenso>
+          </div>
+
+          <ul class="lista-livros">
+            <li class="livro" ng-repeat="livro in livrosDaPagina track by livro.id">
+              <div class="livro-info">
+                <p class="etiqueta">{{livro.genero | uppercase}}</p>
+                <h3>{{livro.titulo}}</h3>
+                <p class="texto-suave">{{livro.autor}} · {{livro.ano}}</p>
+                <p class="livro-sinopse">{{livro.sinopse | resumo:90}}</p>
+                <p class="livro-meta">
+                  {{livro.paginas | number}} páginas · {{livro.paginas | tempoLeitura}}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="botao botao-contorno"
+                ng-click="selecionarLivro(livro, true)"
+              >Ver detalhes</button>
+            </li>
+          </ul>
+
+          <p class="resumo" aria-live="polite">
+            Mostrando {{inicio + 1}}–{{inicio + livrosDaPagina.length}} de
+            {{livrosFiltrados.length | plural:'livro':'livros'}}
+          </p>
+
+          <paginacao
+            total-paginas="totalPaginas"
+            pagina-atual="paginaAtual"
+            ao-mudar="irParaPagina(pagina)"
+          ></paginacao>
+        </section>
+
+        <section id="detalhes" class="secao" tabindex="-1" aria-labelledby="titulo-detalhes">
+          <p class="sobretitulo">Detalhes do livro</p>
+          <h2 id="titulo-detalhes">{{livroSelecionado.titulo}}</h2>
+          <p class="texto-suave">{{livroSelecionado.autor}} · {{livroSelecionado.ano}}</p>
+
+          <abas abas="abasDetalhe" rotulo="Informações sobre {{livroSelecionado.titulo}}"></abas>
+
+          <button type="button" class="botao" ng-click="lerLivro(livroSelecionado)">
+            Começar a ler
+          </button>
+        </section>
+
+        <section class="secao" aria-labelledby="titulo-faq">
+          <h2 id="titulo-faq">Perguntas frequentes</h2>
+          <acordeao itens="perguntas"></acordeao>
+        </section>
+      </div>
+    </main>
+
+    <footer class="rodape">
+      <p>Estante · Projeto acadêmico de AngularJS · Engenharia de Software, UCSAL</p>
+    </footer>
+
+    <notificacoes></notificacoes>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
+    <script src="app.js"></script>
+    <script src="services/livrosFactory.jslivrosFactory.js"></script>
+    <script src="services/toastService.js"></script>
+    <script src="filters/filtros.js"></script>
+    <script src="directives/barraProgresso.js"></script>
+    <script src="directives/acordeao.js"></script>
+    <script src="directives/abas.js"></script>
+    <script src="directives/paginacao.js"></script>
+    <script src="directives/menuSuspenso.js"></script>
+    <script src="directives/notificacoes.js"></script>
+    <script src="controllers/principalController.js"></script>
+  </body>
+</html>
